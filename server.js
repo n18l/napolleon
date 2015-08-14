@@ -22,9 +22,12 @@ router.get('/', function(req, res) {
 
 // Pollcat route (GET http://localhost:8080/api/pollcat)
 router.get('/pollcat', function(req, res) {
+    // if (req.query.token != '4ofROgiGBbMVk1ibnDOflQVU')
+    //     return;
+
     var userChoices      = req.query.text.split(' -');
     var userQuestion     = userChoices.shift();
-    var pollAnnouncement = req.query.user_name + ' asks "' + userQuestion + '"';
+    var pollAnnouncement = req.query.user_name + ' asks: "' + userQuestion + '"';
 
     // Define which emoji to use for options
     var optionEmoji = ['one','two','three','four','five','six','seven','eight','nine'];
@@ -80,12 +83,12 @@ router.get('/pollcat', function(req, res) {
     request.post({
         url: 'https://hooks.slack.com/services/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', 
         json: {
-            "icon_emoji": ":hamburger:",
-            "username": "Hodor",
+            "icon_emoji": ":cat2:",
+            "username": "Pollcat",
             "attachments":[{
                 "fallback": pollAnnouncement,
                 "pretext":  pollAnnouncement,
-                "color":    "#008080",
+                "color":    "#E5E5E5",
                 "fields":[{
                     "value": pollChoices,
                     "short": false
