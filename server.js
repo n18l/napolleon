@@ -27,7 +27,9 @@ router.get('/napolleon', function(req, res) {
 
     var userChoices      = req.query.text.split(' -');
     var userQuestion     = userChoices.shift();
+    var userChannel      = req.query.channel_id;
     var pollAnnouncement = req.query.user_name + ' asks: "' + userQuestion + '"';
+    var slackToken       = "xoxp-3148856461-3909050702-9148379030-c5d7d2";
 
     // Define which emoji to use for options
     var optionEmoji = ['one','two','three','four','five','six','seven','eight','nine'];
@@ -40,8 +42,6 @@ router.get('/napolleon', function(req, res) {
     // Output each poll choice on a new line
     var pollChoices = userChoices.join('\n');
 
-    var slackToken   = "xoxp-3148856461-3909050702-9148379030-c5d7d2"
-    var slackChannel = "C0942TS5Q"
 
     // Function to get recent channel history and find the poll's timestamp
     var getHistory = function() {
@@ -49,7 +49,7 @@ router.get('/napolleon', function(req, res) {
             url: 'https://slack.com/api/channels.history',
             qs: {
                 "token":   slackToken,
-                "channel": slackChannel,
+                "channel": userChannel,
                 "count":   "5"
             }
         }, function (error, response, body) {
@@ -71,7 +71,7 @@ router.get('/napolleon', function(req, res) {
             qs: {
                 "token":     slackToken,
                 "name":      emoji,
-                "channel":   slackChannel,
+                "channel":   userChannel,
                 "timestamp": timestamp
             }
         }, function (error, response, body) {
@@ -83,8 +83,7 @@ router.get('/napolleon', function(req, res) {
     request.post({
         url: 'https://hooks.slack.com/services/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', 
         json: {
-            "icon_emoji": ":flag-fr:",
-            "username": "Napolleon",
+            "channel": userChannel,
             "attachments":[{
                 "fallback": pollAnnouncement,
                 "pretext":  pollAnnouncement,
