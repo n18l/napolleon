@@ -83,8 +83,8 @@ router.get('/pollcat', function(req, res) {
     request.post({
         url: 'https://hooks.slack.com/services/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', 
         json: {
-            "icon_emoji": ":cat2:",
-            "username": "Pollcat",
+            "icon_emoji": ":flag-fr:",
+            "username": "Napolleon",
             "attachments":[{
                 "fallback": pollAnnouncement,
                 "pretext":  pollAnnouncement,
