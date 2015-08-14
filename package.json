@@ -1,5 +1,5 @@
 {
-  "name": "pollcat",
+  "name": "napolleon",
   "description": "A simple polling integration for Slack",
   "version": "0.0.1",
   "dependencies": {
