@@ -20,8 +20,8 @@ router.get('/', function(req, res) {
     res.json({ message: 'hooray! welcome to our api!' });   
 });
 
-// Pollcat route (GET http://localhost:8080/api/pollcat)
-router.get('/pollcat', function(req, res) {
+// Pollcat route (GET http://localhost:8080/api/napolleon)
+router.get('/napolleon', function(req, res) {
     // if (req.query.token != '4ofROgiGBbMVk1ibnDOflQVU')
     //     return;
 
