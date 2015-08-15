@@ -25,12 +25,15 @@ router.get('/napolleon', function(req, res) {
     // if (req.query.token != '4ofROgiGBbMVk1ibnDOflQVU')
     //     return;
 
-    var userChoices      = req.query.text.split(' -');
-    var userQuestion     = userChoices.shift();
-    var userChannelID    = req.query.channel_id;
-    var userChannelName  = '#' + req.query.channel_name;
-    var pollAnnouncement = req.query.user_name + ' asks: "' + userQuestion + '"';
-    var slackToken       = "xoxp-3148856461-3909050702-9148379030-c5d7d2";
+    var userChoices       = req.query.text.split(' -');
+    var userQuestion      = userChoices.shift();
+    var userChannelID     = req.query.channel_id;
+    var userChannelPrefix = userChannelID[0] == 'D' ? '@' : '#';
+    var userChannelName   = userChannelPrefix + req.query.channel_name;
+    var pollAnnouncement  = req.query.user_name + ' asks: "' + userQuestion + '"';
+    var slackToken        = "xoxp-3148856461-3909050702-9148379030-c5d7d2";
+
+    res.json({message:userChannelID});
 
     // Define which emoji to use for options
     var optionEmoji = ['one','two','three','four','five','six','seven','eight','nine'];
@@ -47,7 +50,7 @@ router.get('/napolleon', function(req, res) {
     // Function to get recent channel history and find the poll's timestamp
     var getHistory = function() {
         request.get({
-            url: 'https://slack.com/api/channels.history',
+            url: 'https://slack.com/api/' + (userChannelID[0]) + '.history',
             qs: {
                 "token":   slackToken,
                 "channel": userChannelID,
@@ -55,7 +58,7 @@ router.get('/napolleon', function(req, res) {
             }
         }, function (error, response, body) {
             if (!error && response.statusCode == 200) {
-                var lastMessage = _.findWhere(JSON.parse(body).messages, {"bot_id":"B0943D5MX"})
+                var lastMessage = _.findWhere(JSON.parse(body).messages, {"bot_id": "B0943D5MX"})
                 var lastTimestamp = lastMessage.ts;
 
                 _.each(userChoices.reverse(), function(element, index, list) {
@@ -80,7 +83,7 @@ router.get('/napolleon', function(req, res) {
         });
     };
 
-    // Post poll to Slack channel
+    // Function to post poll to Slack
     request.post({
         url: 'https://hooks.slack.com/services/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', 
         json: {
@@ -97,10 +100,25 @@ router.get('/napolleon', function(req, res) {
         }
     }, function (error, response, body) {
         if (!error && response.statusCode == 200) {
-            console.log(body);
+            console.log(body, userChannelName);
             getHistory();
         }
     });
+
+    // Determine if user is posting to a Channel or Direct Message
+    // request.get({
+    //     url: 'https://slack.com/api/channels.list',
+    //     qs: {
+    //         "token": slackToken,
+    //         "exclude_archived": 1
+    //     }
+    // }, function(error, response, body) {
+    //     if (!error && response.statusCode == 200) {
+    //         var postingToChannel = _.findWhere(JSON.parse(body).channels, {"id": userChannelID});
+    //         userChannelPrefix = postingToChannel ? '#' : '@';
+    //         postToSlack();
+    //     }
+    // });
 });
 
 // REGISTER ROUTES ---------------------------------------------
