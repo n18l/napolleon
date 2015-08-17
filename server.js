@@ -15,21 +15,23 @@ var port = process.env.PORT || 8080;        // Set operating port
 // =============================================================================
 var router = express.Router();              // Get an instance of the express Router
 
-// Test route (GET http://localhost:8080/api)
+// Test route (GET http://.../api)
 router.get('/', function(req, res) {
     res.json({ message: 'hooray! welcome to our api!' });   
 });
 
-// Napolleon route (GET http://localhost:8080/api/napolleon)
+// Napolleon route (GET http://.../api/napolleon)
 router.get('/napolleon', function(req, res) {
-    // if (req.query.token != '4ofROgiGBbMVk1ibnDOflQVU')
-    //     return;
+    // Return with an error if the wrong token is supplied
+    if (req.query.token != '4ofROgiGBbMVk1ibnDOflQVU')
+        return res.send('Invlaid team token supplied! This API is restricted to use by the Commerce House team.');
 
     var userChoices      = req.query.text.split(' -');
     var userQuestion     = userChoices.shift();
 
+    // Return with an error if the wrong format is used
     if (userChoices.length < 3 || userQuestion.substr(0,2) == ' -')
-        return res.send('Please provide a question and 2-9 poll choices, formatted\n```/poll [question] -[choice 1] -[choice 2] ...```');
+        return res.send('Please provide a question and 2-9 poll choices, like the following example:\n```/poll What is the best choice? -The first one! -Choice number two? [...]```');
 
     var userChannelID    = req.query.channel_id;
     var userChannelType  = req.query.channel_name == 'directmessage' ? 'im' : ( req.query.channel_name == 'privategroup' ? 'groups' : 'channels');
