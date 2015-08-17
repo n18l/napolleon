@@ -20,13 +20,17 @@ router.get('/', function(req, res) {
     res.json({ message: 'hooray! welcome to our api!' });   
 });
 
-// Pollcat route (GET http://localhost:8080/api/napolleon)
+// Napolleon route (GET http://localhost:8080/api/napolleon)
 router.get('/napolleon', function(req, res) {
     // if (req.query.token != '4ofROgiGBbMVk1ibnDOflQVU')
     //     return;
 
     var userChoices      = req.query.text.split(' -');
     var userQuestion     = userChoices.shift();
+
+    if (userChoices.length < 3 || userQuestion.substr(0,2) == ' -')
+        return res.send('Please provide a question and 2-9 poll choices, formatted\n```/poll [question] -[choice 1] -[choice 2] ...```');
+
     var userChannelID    = req.query.channel_id;
     var userChannelType  = req.query.channel_name == 'directmessage' ? 'im' : ( req.query.channel_name == 'privategroup' ? 'groups' : 'channels');
     var userChannelName  = userChannelType == 'im' ? '@' + req.query.user_name : '#' + req.query.channel_name;
