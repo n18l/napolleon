@@ -1,18 +1,12 @@
 // server.js
 
-// BASE SETUP
-// =============================================================================
-
 // Define required packages
 var express    = require('express');        // Call express
 var app        = express();                 // Define our app using express
 var request    = require('request');        
 var _          = require('underscore');
 
-var port = process.env.PORT || 8080;        // Set operating port
-
-// ROUTES FOR OUR API
-// =============================================================================
+var port   = process.env.PORT || 8080;      // Set operating port
 var router = express.Router();              // Get an instance of the express Router
 
 // Test route (GET http://.../api)
@@ -24,63 +18,39 @@ router.get('/', function(req, res) {
 router.get('/napolleon', function(req, res) {
     // Return with an error if the wrong token is supplied
     if (req.query.token != '4ofROgiGBbMVk1ibnDOflQVU')
-        return res.send('Invlaid team token supplied! This API is restricted to use by the Commerce House team.');
+        return res.send('Invalid team token supplied! This API is restricted to use by the Commerce House team.');
 
-    var userChoices      = req.query.text.split(' -');
-    var userQuestion     = userChoices.shift();
+    var pollChoices      = req.query.text.split(' -');
+    var pollQuestion     = pollChoices.shift();
 
-    // Return with an error if the wrong format is used
-    if (userChoices.length < 3 || userQuestion.substr(0,2) == ' -')
-        return res.send('Please provide a question and 2-9 poll choices, like the following example:\n```/poll What is the best choice? -The first one! -Choice number two? [...]```');
+    // Return with an error if there is no question or if there are too few/too many choices
+    if (pollQuestion.substr(0,2) == ' -' || pollChoices.length < 2 || pollChoices.length > 10)
+        return res.send('Please provide a question and 2-10 poll choices, like the following example:\n```/poll What is the best choice? -The first one! -Choice number two? [...]```');
 
-    var userChannelID    = req.query.channel_id;
-    var userChannelType  = req.query.channel_name == 'directmessage' ? 'im' : ( req.query.channel_name == 'privategroup' ? 'groups' : 'channels');
-    var userChannelName  = userChannelType == 'im' ? '@' + req.query.user_name : '#' + req.query.channel_name;
-    var pollAnnouncement = req.query.user_name + ' asks: "' + userQuestion + '"';
+    var pollChannelID    = req.query.channel_id;
+    var pollChannelType  = req.query.channel_name == 'directmessage' ? 'im' : ( req.query.channel_name == 'privategroup' ? 'groups' : 'channels');
+    var pollAnnouncement = req.query.user_name + ' asks: "' + pollQuestion + '"';
     var slackToken       = "xoxp-3148856461-3909050702-9148379030-c5d7d2";
 
     // Define which emoji to use for options
-    var optionEmoji = ['one','two','three','four','five','six','seven','eight','nine'];
+    var optionEmoji = ['one','two','three','four','five','six','seven','eight','nine', 'keycap_ten'];
 
     // Add numbered emoji to each poll choice
-    _.each(userChoices, function(element, index, list) {
-        userChoices[index] = ':' + optionEmoji[index] + ':  ' + userChoices[index];
+    _.each(pollChoices, function(element, index, list) {
+        pollChoices[index] = ':' + optionEmoji[index] + ':  ' + pollChoices[index];
     });
 
     // Output each poll choice on a new line
-    var pollChoices = userChoices.join('\n');
+    var formattedPollChoices = pollChoices.join('\n');
 
-
-    // Function to get recent channel history and find the poll's timestamp
-    var getHistory = function() {
-        request.get({
-            url: 'https://slack.com/api/' + userChannelType + '.history',
-            qs: {
-                "token":   slackToken,
-                "channel": userChannelID,
-                "count":   "5"
-            }
-        }, function (error, response, body) {
-            if (!error && response.statusCode == 200) {
-                console.log(body);
-                var lastMessage   = _.findWhere(JSON.parse(body).messages, {"bot_id": "B0943D5MX"});
-                var lastTimestamp = lastMessage.ts;
-
-                _.each(userChoices.reverse(), function(element, index, list) {
-                    addReaction(optionEmoji[index], lastTimestamp);
-                });
-            }
-        });
-    };
-
-    // Function to add poll choice icons as reactions to be clicked
+    // Add poll choices as clickable reaction emoji
     var addReaction = function(emoji, timestamp) {
         request.get({
             url: 'https://slack.com/api/reactions.add',
             qs: {
                 "token":     slackToken,
                 "name":      emoji,
-                "channel":   userChannelID,
+                "channel":   pollChannelID,
                 "timestamp": timestamp
             }
         }, function (error, response, body) {
@@ -90,18 +60,39 @@ router.get('/napolleon', function(req, res) {
         });
     };
 
-    // Function to post poll to Slack
-    var postToSlack = function(channel) {
+    // Get target channel's recent history and find the poll's timestamp
+    var getChannelHistory = function() {
+        request.get({
+            url: 'https://slack.com/api/' + pollChannelType + '.history',
+            qs: {
+                "token":   slackToken,
+                "channel": pollChannelID,
+                "count":   "5"
+            }
+        }, function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+                console.log(body);
+                var lastMessage   = _.findWhere(JSON.parse(body).messages, {"bot_id": "B0943D5MX"});
+                var lastTimestamp = lastMessage.ts;
+
+                _.each(pollChoices, function(element, index, list) {
+                    addReaction(optionEmoji[index], lastTimestamp);
+                });
+            }
+        });
+    };
+
+    // Post poll to the target Slack channel
+    var postToSlack = function() {
         request.post({
             url: 'https://hooks.slack.com/services/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', 
             json: {
-                "channel": channel,
+                "channel": pollChannelID,
                 "attachments":[{
                     "fallback": pollAnnouncement,
                     "pretext":  pollAnnouncement,
-                    "color":    "blue",
                     "fields":[{
-                        "value": pollChoices,
+                        "value": formattedPollChoices,
                         "short": false
                     }]
                 }]
@@ -109,33 +100,14 @@ router.get('/napolleon', function(req, res) {
         }, function (error, response, body) {
             if (!error && response.statusCode == 200) {
                 console.log(body);
-                getHistory();
+                getChannelHistory();
             }
         });
     };
 
-    // Determine if user is posting to a Channel or Direct Message
-    var getPrivateGroupName = function() {
-        request.get({
-            url: 'https://slack.com/api/groups.list',
-            qs: {
-                "token": slackToken,
-                "exclude_archived": 1
-            }
-        }, function(error, response, body) {
-            if (!error && response.statusCode == 200) {
-                console.log(body);
-                var privateGroup = _.findWhere(JSON.parse(body).groups, {"id": userChannelID});
-                postToSlack(privateGroup.name);
-            }
-        });
-    };
-
-    if (userChannelType == 'groups')
-        getPrivateGroupName();
-    else
-        postToSlack(userChannelName);
-
+    // Post the poll back to the channel it was requested from
+    postToSlack();
+    
 });
 
 // REGISTER ROUTES ---------------------------------------------
