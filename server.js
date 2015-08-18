@@ -11,14 +11,22 @@ var router = express.Router();              // Get an instance of the express Ro
 
 // Test route (GET http://.../api)
 router.get('/', function(req, res) {
-    res.json({ message: 'hooray! welcome to our api!' });   
+    res.send('Napolleon, reporting for duty! Vive le sondage!');
 });
 
 // Napolleon route (GET http://.../api/napolleon)
 router.get('/napolleon', function(req, res) {
+
+    // Configuration variables ================================================
+    var slackSlashToken = '4ofROgiGBbMVk1ibnDOflQVU';
+    var slackWebhookURL = 'https://hooks.slack.com/services/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';
+    var slackAPIToken   = 'xoxp-3148856461-3909050702-9148379030-c5d7d2';
+    // ========================================================================
+
+
     // Return with an error if the wrong token is supplied
-    if (req.query.token != '4ofROgiGBbMVk1ibnDOflQVU')
-        return res.send('Invalid team token supplied! This API is restricted to use by the Commerce House team.');
+    if (slackSlashToken.length > 0 && req.query.token != slackSlashToken)
+        return res.send('Invalid Slash Command token supplied!');
 
     var pollChoices      = req.query.text.split(' -');
     var pollQuestion     = pollChoices.shift();
@@ -30,7 +38,6 @@ router.get('/napolleon', function(req, res) {
     var pollChannelID    = req.query.channel_id;
     var pollChannelType  = req.query.channel_name == 'directmessage' ? 'im' : ( req.query.channel_name == 'privategroup' ? 'groups' : 'channels');
     var pollAnnouncement = req.query.user_name + ' asks: "' + pollQuestion + '"';
-    var slackToken       = "xoxp-3148856461-3909050702-9148379030-c5d7d2";
 
     // Define which emoji to use for options
     var optionEmoji = ['one','two','three','four','five','six','seven','eight','nine', 'keycap_ten'];
@@ -48,7 +55,7 @@ router.get('/napolleon', function(req, res) {
         request.get({
             url: 'https://slack.com/api/reactions.add',
             qs: {
-                "token":     slackToken,
+                "token":     slackAPIToken,
                 "name":      emoji,
                 "channel":   pollChannelID,
                 "timestamp": timestamp
@@ -65,7 +72,7 @@ router.get('/napolleon', function(req, res) {
         request.get({
             url: 'https://slack.com/api/' + pollChannelType + '.history',
             qs: {
-                "token":   slackToken,
+                "token":   slackAPIToken,
                 "channel": pollChannelID,
                 "count":   "5"
             }
@@ -85,7 +92,7 @@ router.get('/napolleon', function(req, res) {
     // Post poll to the target Slack channel
     var postToSlack = function() {
         request.post({
-            url: 'https://hooks.slack.com/services/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', 
+            url: slackWebhookURL, 
             json: {
                 "channel": pollChannelID,
                 "attachments":[{
