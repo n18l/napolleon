@@ -5,10 +5,10 @@ Slack is a great collaborative tool, but many people have noticed that it lacks 
 
 Now you can!
 
-`/poll Where should we go for lunch? -Henry's Hunan -Suppenküche -Nopa`
+`/poll Where should we go for lunch? -Henry's Hunan -Suppenküche -Nopa`<br>
 <img src="http://nickbrombal.com/projects/napolleon/Example 1.png" width="450px" />
 
-`/poll How much wood could a woodchuck chuck? -None -One tree's worth -A forest's worth! -What's a woodchuck?`
+`/poll How much wood could a woodchuck chuck? -None -One tree's worth -A forest's worth! -What's a woodchuck?`<br>
 <img src="http://nickbrombal.com/projects/napolleon/Example 2.png" width="450px" />
 
 With a little effort on your part, Napolleon will do the heavy lifting of formatting a pretty poll for you--all you'll have to type is a basic slash command. Finally, no more walking around and actually *interacting* with people to get consensus on pressing matters. Gross.
