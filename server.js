@@ -20,7 +20,7 @@ router.get('/napolleon', function(req, res) {
     // Configuration variables ================================================
     var slackSlashToken = '4ofROgiGBbMVk1ibnDOflQVU';
     var slackWebhookURL = 'https://hooks.slack.com/services/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';
-    var slackAPIToken   = 'xoxp-3148856461-3909050702-9148379030-c5d7d2';
+    var slackAPIToken   = 'xxxx';
     // ========================================================================
 
 
